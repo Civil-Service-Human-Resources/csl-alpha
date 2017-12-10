@@ -6,7 +6,7 @@ RUN gem install sass:3.4.19
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY requirements.txt /usr/src/app/
+COPY requirements.txt /usr/src/c/
 
 RUN wget -O- https://toolbelt.heroku.com/install-ubuntu.sh | sh
 

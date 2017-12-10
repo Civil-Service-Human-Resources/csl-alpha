@@ -2,6 +2,7 @@ webusers:
   build: .
   env_file: docker-local.env
   links:
+    - web
     - mongo
   volumes:
     - ".:/usr/src/app"
@@ -11,8 +12,9 @@ web:
   build: .
   env_file: docker-local.env
   links:
-    - webusers
     - mongo
+    - openlrs
+    - learningregistry
   ports:
     - "8002:8000"
   volumes:
@@ -22,3 +24,29 @@ web:
 mongo:
   image: mongo:3.2
 
+openlrs:
+  image: cslopenlrscontainer_openlrs
+  ports:
+    - "9200:9200"
+    - "8090:8080"
+
+restore:
+   image : csllearningregistrycontainers_restore
+   links:
+      - couchdb
+      - learningregistry
+   volumes:
+      - ../csl-learningregistry-containers/couchdbdumps/:/tmp/couchdbdumps
+   command: "/bin/sh -c 'dockerize -wait http://couchdb:5984 && cd /tmp/couchdbdumps && ./restoredb.sh && dockerize -wait http://learningregistry && ./uploadresources.sh'"
+
+learningregistry:
+  image: csllearningregistrycontainers_learningregistry
+  links:
+    - couchdb
+  ports:
+    - "8012:80"
+
+couchdb:
+  image: csllearningregistrycontainers_couchdb 
+  expose:
+   - "5984"

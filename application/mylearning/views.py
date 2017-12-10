@@ -37,8 +37,6 @@ def email_referrer():
 
     return render_template('email_referrer.html', email=email_data)
 
-
-
 @mylearning.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()

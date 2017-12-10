@@ -60,3 +60,5 @@ application/config/*.json
 
 # temp data
 application/data/user-data.json
+
+.idea

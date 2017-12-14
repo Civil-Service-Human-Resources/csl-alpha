@@ -75,6 +75,7 @@ def load_user_records(email):
 
     return _get_lrs_result_from(_execute_query(query))
 
+
 def load_user_learning_plans(email):
     # all of them lines of code be here for now
     with open(LEARNING_PLAN_DATA_FILEPATH) as data_file:
@@ -82,9 +83,10 @@ def load_user_learning_plans(email):
 
     loaded_plans = load_learning_plans(email)
     for plan in loaded_plans:
-        learning_plan.insert(len(learning_plan)-1, plan)
+        learning_plan.insert(len(learning_plan) - 1, plan)
 
     return learning_plan
+
 
 def load_learning_plans(email):
     query = {
@@ -96,6 +98,8 @@ def load_learning_plans(email):
     result = _execute_query(query).get('hits', {}).get('hits')
     enroll_verb = Statement.VERBS['enroll']
     plan_verb = Statement.VERBS['plan']
+    plans = []
+    plan_items = {}
 
     if result:
         statements_to_hide = []
@@ -104,9 +108,6 @@ def load_learning_plans(email):
             if statement.get('verb').get('id') == Statement.VERBS['void']['id']:
                 statements_to_hide.append(raw_statement.get('_id'))
                 statements_to_hide.append(statement.get('object').get('id'))
-
-        plans = []
-        plan_items = {}
 
         for raw_statement in result:
             if raw_statement.get('_id') not in statements_to_hide:
@@ -127,7 +128,6 @@ def load_learning_plans(email):
 
 
 def _get_lrs_result_from(query_response, take_first=False):
-
     def __should_be_hidden(statement):
         return statement.get('verb').get('id') in [Statement.VERBS['void']['id'], Statement.VERBS['plan']['id']]
 
@@ -141,10 +141,9 @@ def _get_lrs_result_from(query_response, take_first=False):
                 statements_to_hide.append(raw_statement.get('_id'))
                 statements_to_hide.append(statement.get('object').get('id'))
 
-
         result = [_create_view_model_learning_record(item.get('_source'))
-            for item in result
-            if item.get('_id') not in statements_to_hide]
+                  for item in result
+                  if item.get('_id') not in statements_to_hide]
 
         if result and take_first:
             result = next(result, None)
@@ -188,7 +187,7 @@ def _create_match_learning_records_by(email):
                 'bool': {
                     'should': [
                         {'match_phrase': {'actor.mbox': 'mailto:%s' % email}},
-                        {'match_phrase': {'actor.name':  email.split('@')[0]}}
+                        {'match_phrase': {'actor.name': email.split('@')[0]}}
                     ]
                 }
             }
@@ -233,19 +232,19 @@ def _create_learning_plan_view_model(plan_statement, item_statements):
         'addedBy': 'diagnostic',
         'descriptionLines': [],
         'sections': [],
-        'items': [ _create_learning_plan_item_view_model(item) for item in item_statements]
+        'items': [_create_learning_plan_item_view_model(item) for item in item_statements]
     }
 
 
 def _create_learning_plan_item_view_model(item_statement, learning_records=[]):
     verb_name = item_statement['verb']['display']['en']
-    
+
     info_lines = []
     resource_type = Statement.get_resource_type(item_statement.get('object').get('definition').get('type'))
     if resource_type:
         resource_type = resource_type.get('name', '')
         info_lines.append(resource_type)
-    
+
     duration = item_statement.get('result', {}).get('duration')
     if duration:
         duration = 'Average time: ' + mls_dates.convert_duration(duration)
@@ -272,3 +271,4 @@ def _create_learning_plan_item_view_model(item_statement, learning_records=[]):
     }
 
     return planned_item
+
